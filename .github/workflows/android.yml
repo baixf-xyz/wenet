@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: set up JDK 8
+    - name: set up JDK 11
       uses: actions/setup-java@v3
       with:
-        java-version: '8'
+        java-version: '11'
         distribution: 'temurin'
         cache: gradle
 
@@ -43,20 +43,29 @@ jobs:
         name: release-apk
         path: ${{ env.ANDROID_DIR }}/${{ env.RELEASE_DIR }}
 
+    # - name: Prepare Release Binary
+    #   run: |
+    #     cd ${{ env.ANDROID_DIR }}
+    #     for arch in arm64-v8a x86_64; do
+    #       mkdir $arch
+    #       cp app/.cxx/cmake/release/$arch/decoder_main $arch
+    #       cp `find . -name "pytorch_android-*.aar"`/jni/$arch/* $arch
+    #     done
+
     - name: Prepare Release Binary
       run: |
         cd ${{ env.ANDROID_DIR }}
-        for arch in arm64-v8a x86_64; do
+        for arch in x86_64; do
           mkdir $arch
           cp app/.cxx/cmake/release/$arch/decoder_main $arch
           cp `find . -name "pytorch_android-*.aar"`/jni/$arch/* $arch
         done
 
-    - name: Upload arm64-v8a Binary
-      uses: actions/upload-artifact@v3
-      with:
-        name: release-arm64-v8a-binary
-        path: ${{ env.ANDROID_DIR }}/arm64-v8a
+    # - name: Upload arm64-v8a Binary
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: release-arm64-v8a-binary
+    #     path: ${{ env.ANDROID_DIR }}/arm64-v8a
 
     - name: Upload x86_64 Binary
       uses: actions/upload-artifact@v3
