@@ -40,6 +40,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_STL=c++_shared"
+                arguments "-DFBJNI_DIR=${project.buildDir}/fbjni"
                 targets "wenet", "decoder_main"
                 cppFlags "-std=c++14", "-DC10_USE_GLOG", "-DC10_USE_MINIMAL_GLOG", "-DANDROID", "-Wno-c++11-narrowing", "-fexceptions"
             }
@@ -88,8 +89,9 @@ dependencies {
     implementation 'com.github.pengzhendong:wenet-openfst-android:1.0.2'
     extractForNativeBuild 'com.github.pengzhendong:wenet-openfst-android:1.0.2'
     
-    // FBJNI - Add this line
+    // FBJNI
     implementation 'com.facebook.fbjni:fbjni-java-only:0.2.2'
+    extractForNativeBuild 'com.facebook.fbjni:fbjni:0.2.2'
 }
 
 task extractAARForNativeBuild {
@@ -98,7 +100,7 @@ task extractAARForNativeBuild {
             def file = it.absoluteFile
             copy {
                 from zipTree(file)
-                into "$buildDir/$file.name"
+                into "$buildDir/${file.name}"
                 include "headers/**"
                 include "jni/**"
             }
@@ -109,5 +111,25 @@ task extractAARForNativeBuild {
 tasks.whenTaskAdded { task ->
     if (task.name.contains('externalNativeBuild')) {
         task.dependsOn(extractAARForNativeBuild)
+    }
+}
+
+// 添加一个任务来打印重要的构建信息
+task printBuildInfo {
+    doLast {
+        println "Build directory: ${project.buildDir}"
+        println "FBJNI directory: ${project.buildDir}/fbjni"
+        println "NDK version: ${android.ndkVersion}"
+        println "CMake version: ${android.externalNativeBuild.cmake.version}"
+        configurations.extractForNativeBuild.files.each {
+            println "Extracting: ${it.name}"
+        }
+    }
+}
+
+// 确保 printBuildInfo 任务在其他任务之前运行
+tasks.whenTaskAdded { task ->
+    if (task.name.contains('externalNativeBuild')) {
+        task.dependsOn(printBuildInfo)
     }
 }
