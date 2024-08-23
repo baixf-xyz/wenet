@@ -3,52 +3,90 @@ set(TARGET wenet)
 project(${TARGET} CXX)
 set(CMAKE_CXX_STANDARD 14)
 include(ExternalProject)
+
+# Options
 option(TORCH "whether to build with Torch" ON)
 option(ONNX "whether to build with ONNX" OFF)
 option(ITN "whether to use WeTextProcessing" ON)
-set(CMAKE_VERBOSE_MAKEFILE on)
+
+# Global settings
+set(CMAKE_VERBOSE_MAKEFILE ON)
 set(build_DIR ${CMAKE_SOURCE_DIR}/../../../build)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+# Remove excluded libs
 string(REPLACE "-Wl,--exclude-libs,libgcc_real.a" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
-# PyTorch 配置
-include(libtorch)  # 确保libtorch.cmake文件中配置了正确的路径
-if(NOT DEFINED PYTORCH_LIBRARY)
-  message(FATAL_ERROR "PYTORCH_LIBRARY not found. Please check libtorch.cmake")
+# PyTorch configuration
+if(TORCH)
+  include(libtorch)
+  if(NOT DEFINED PYTORCH_LIBRARY)
+    message(FATAL_ERROR "PYTORCH_LIBRARY not found. Please check libtorch.cmake")
+  endif()
 endif()
 
-# FBJNI 配置
-set(FBJNI_DIR ${build_DIR}/fbjni)  # 设置 FBJNI 库的路径
-find_library(FBJNI_LIBRARY fbjni PATHS ${FBJNI_DIR}/lib NO_CMAKE_FIND_ROOT_PATH)
+# FBJNI configuration
+set(FBJNI_DIR ${build_DIR}/fbjni)
+find_library(FBJNI_LIBRARY fbjni 
+             PATHS 
+               ${FBJNI_DIR}/lib 
+               ${FBJNI_DIR}/jni/${ANDROID_ABI}
+             NO_CMAKE_FIND_ROOT_PATH
+)
 if(NOT FBJNI_LIBRARY)
-  message(FATAL_ERROR "FBJNI_LIBRARY not found. Please check the path: ${FBJNI_DIR}")
+  message(FATAL_ERROR "FBJNI_LIBRARY not found. Searched in:\n  ${FBJNI_DIR}/lib\n  ${FBJNI_DIR}/jni/${ANDROID_ABI}\nPlease ensure FBJNI is installed correctly.")
 endif()
 
+# Other dependencies
 include(openfst)
-include(wetextprocessing)
+if(ITN)
+  include(wetextprocessing)
+endif()
 
+# Include directories
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/kaldi
-  ${build_DIR}/pytorch_android-1.13.0.aar/headers  # PyTorch 头文件路径
-  ${FBJNI_DIR}/include  # FBJNI 头文件路径
+  ${build_DIR}/pytorch_android-1.13.0.aar/headers
+  ${FBJNI_DIR}/include
 )
 
+# Add subdirectories
 add_subdirectory(utils)
 add_subdirectory(frontend)
 add_subdirectory(post_processor)
-add_subdirectory(kaldi)  # kaldi: wfst based decoder
+add_subdirectory(kaldi)
 add_subdirectory(decoder)
 
-add_dependencies(post_processor wetextprocessing)
+# Dependencies
+if(ITN)
+  add_dependencies(post_processor wetextprocessing)
+endif()
 
+# Link libraries
 link_libraries(frontend decoder android ${FBJNI_LIBRARY})
+if(TORCH)
+  link_libraries(${TORCH_LIBRARIES})
+endif()
 
+# Main library
 add_library(${TARGET} SHARED wenet.cc)
 
+# Executable
 add_executable(decoder_main bin/decoder_main.cc)
-target_link_libraries(decoder_main PUBLIC libc++_shared.so ${TORCH_LIBRARIES} ${FBJNI_LIBRARY})
+target_link_libraries(decoder_main 
+  PUBLIC 
+    libc++_shared.so
+    ${FBJNI_LIBRARY}
+)
+if(TORCH)
+  target_link_libraries(decoder_main PUBLIC ${TORCH_LIBRARIES})
+endif()
 
-# 打印调试信息
-message(STATUS "PYTORCH_LIBRARY: ${PYTORCH_LIBRARY}")
+# Debug information
+message(STATUS "ANDROID_ABI: ${ANDROID_ABI}")
 message(STATUS "FBJNI_LIBRARY: ${FBJNI_LIBRARY}")
+if(TORCH)
+  message(STATUS "PYTORCH_LIBRARY: ${PYTORCH_LIBRARY}")
+endif()
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
