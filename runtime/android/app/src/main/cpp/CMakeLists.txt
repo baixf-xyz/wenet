@@ -31,11 +31,14 @@ find_library(FBJNI_LIBRARY fbjni
              PATHS 
                ${FBJNI_DIR}/lib 
                ${FBJNI_DIR}/jni/${ANDROID_ABI}
+               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
              NO_CMAKE_FIND_ROOT_PATH
 )
 if(NOT FBJNI_LIBRARY)
-  message(FATAL_ERROR "FBJNI_LIBRARY not found. Searched in:\n  ${FBJNI_DIR}/lib\n  ${FBJNI_DIR}/jni/${ANDROID_ABI}\nPlease ensure FBJNI is installed correctly.")
+  message(FATAL_ERROR "FBJNI_LIBRARY not found. Searched in:\n  ${FBJNI_DIR}/lib\n  ${FBJNI_DIR}/jni/${ANDROID_ABI}\n  ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}\nPlease ensure FBJNI is installed correctly.")
 endif()
+
+message(STATUS "Found FBJNI_LIBRARY: ${FBJNI_LIBRARY}")
 
 # Other dependencies
 include(openfst)
@@ -90,3 +93,4 @@ if(TORCH)
   message(STATUS "PYTORCH_LIBRARY: ${PYTORCH_LIBRARY}")
 endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CMAKE_LIBRARY_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
