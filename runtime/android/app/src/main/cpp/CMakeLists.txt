@@ -12,13 +12,14 @@ set(build_DIR ${CMAKE_SOURCE_DIR}/../../../build)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 string(REPLACE "-Wl,--exclude-libs,libgcc_real.a" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
-include(libtorch)
+include(libtorch)  # 确保libtorch.cmake文件中配置了正确的路径
 include(openfst)
 include(wetextprocessing)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/kaldi
+  ${build_DIR}/pytorch_android-1.13.0.aar/headers  # 添加Pytorch头文件路径
 )
 
 add_subdirectory(utils)
@@ -32,4 +33,4 @@ link_libraries(frontend decoder android)
 add_library(${TARGET} SHARED wenet.cc)
 
 add_executable(decoder_main bin/decoder_main.cc)
-target_link_libraries(decoder_main PUBLIC libc++_shared.so)
+target_link_libraries(decoder_main PUBLIC libc++_shared.so ${TORCH_LIBRARIES})  # 确保链接Torch库
