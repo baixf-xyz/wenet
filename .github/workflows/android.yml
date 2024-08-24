@@ -32,17 +32,17 @@ jobs:
         tar -xf model.tar.gz
         find . \( -name "final.zip" -o -name "units.txt" \) | xargs -I {} cp {} ${{ env.ANDROID_DIR }}/app/src/main/assets
 
-    - name: Verify FBJNI
-      run: |
-        tree ${{ env.ANDROID_DIR }} -a
-        tree /home/runner/work/wenet/wenet/runtime/android/app/build -a
-        find ${{ env.ANDROID_DIR }} -name "*.so"
-
     - name: Build with Gradle
       run: |
         cd ${{ env.ANDROID_DIR }}
         chmod +x gradlew
         ./gradlew assembleRelease --info
+
+    - name: Verify FBJNI
+      run: |
+        tree ${{ env.ANDROID_DIR }} -a
+        tree /home/runner/work/wenet/wenet/runtime/android/app/build -a
+        find ${{ env.ANDROID_DIR }} -name "*.so"
 
     - name: Prepare Release Binary
       run: |
