@@ -37,6 +37,10 @@ jobs:
         cd ${{ env.ANDROID_DIR }}
         ./gradlew clean
 
+    - name: Verify FBJNI
+      run: |
+        tree -a ${{ env.ANDROID_DIR }}
+
     - name: Build with Gradle
       run: |
         cd ${{ env.ANDROID_DIR }}
