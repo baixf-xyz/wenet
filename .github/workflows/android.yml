@@ -36,16 +36,7 @@ jobs:
       run: |
         cd ${{ env.ANDROID_DIR }}
         chmod +x gradlew
-        ./gradlew assembleRelease --info
-      continue-on-error: true
-
-    - name: Verify Build Outputs
-      run: |
-        echo "Directory tree of build outputs:"
-        tree ${{ env.ANDROID_DIR }}/app/build -a || echo "No build outputs found"
-        echo "Checking for .so files:"
-        find ${{ env.ANDROID_DIR }}/app/build -type f -name "*.so"
-      continue-on-error: true
+        ./gradlew assembleRelease
 
     - name: Prepare Release Binary
       run: |
