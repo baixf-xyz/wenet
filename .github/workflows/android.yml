@@ -40,6 +40,7 @@ jobs:
 
     - name: Verify FBJNI
       run: |
+        find /home/runner/work/wenet/wenet/runtime/android/app -name "libfbjni.so"
         ls -l ${{ env.FBJNI_DIR }}
 
     - name: Build with Gradle
