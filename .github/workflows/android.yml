@@ -40,6 +40,7 @@ jobs:
     - name: Verify FBJNI
       run: |
         tree -a ${{ env.ANDROID_DIR }}
+        find ${{ env.ANDROID_DIR }} -name "*.so"
 
     - name: Build with Gradle
       run: |
