@@ -4,93 +4,32 @@ project(${TARGET} CXX)
 set(CMAKE_CXX_STANDARD 14)
 include(ExternalProject)
 
-# Options
 option(TORCH "whether to build with Torch" ON)
 option(ONNX "whether to build with ONNX" OFF)
 option(ITN "whether to use WeTextProcessing" ON)
-
-# Global settings
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE on)
 set(build_DIR ${CMAKE_SOURCE_DIR}/../../../build)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-# Remove excluded libs
 string(REPLACE "-Wl,--exclude-libs,libgcc_real.a" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
-# PyTorch configuration
-if(TORCH)
-  include(libtorch)
-  if(NOT DEFINED PYTORCH_LIBRARY)
-    message(FATAL_ERROR "PYTORCH_LIBRARY not found. Please check libtorch.cmake")
-  endif()
-endif()
-
-# FBJNI configuration
-set(FBJNI_DIR ${build_DIR}/fbjni)
-find_library(FBJNI_LIBRARY fbjni 
-             PATHS 
-               ${FBJNI_DIR}/lib 
-               ${FBJNI_DIR}/jni/${ANDROID_ABI}
-               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-             NO_CMAKE_FIND_ROOT_PATH
-)
-if(NOT FBJNI_LIBRARY)
-  message(FATAL_ERROR "FBJNI_LIBRARY not found. Searched in:\n  ${FBJNI_DIR}/lib\n  ${FBJNI_DIR}/jni/${ANDROID_ABI}\n  ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}\nPlease ensure FBJNI is installed correctly.")
-endif()
-
-message(STATUS "Found FBJNI_LIBRARY: ${FBJNI_LIBRARY}")
-
-# Other dependencies
+include(libtorch)
 include(openfst)
-if(ITN)
-  include(wetextprocessing)
-endif()
+include(wetextprocessing)
 
-# Include directories
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/kaldi
-  ${build_DIR}/pytorch_android-1.13.0.aar/headers
-  ${FBJNI_DIR}/include
 )
 
-# Add subdirectories
 add_subdirectory(utils)
 add_subdirectory(frontend)
 add_subdirectory(post_processor)
-add_subdirectory(kaldi)
+add_subdirectory(kaldi)  # kaldi: wfst based decoder
 add_subdirectory(decoder)
+add_dependencies(post_processor wetextprocessing)
 
-# Dependencies
-if(ITN)
-  add_dependencies(post_processor wetextprocessing)
-endif()
-
-# Link libraries
-link_libraries(frontend decoder android ${FBJNI_LIBRARY})
-if(TORCH)
-  link_libraries(${TORCH_LIBRARIES})
-endif()
-
-# Main library
+link_libraries(frontend decoder android)
 add_library(${TARGET} SHARED wenet.cc)
 
-# Executable
 add_executable(decoder_main bin/decoder_main.cc)
-target_link_libraries(decoder_main 
-  PUBLIC 
-    libc++_shared
-    ${FBJNI_LIBRARY}
-)
-if(TORCH)
-  target_link_libraries(decoder_main PUBLIC ${TORCH_LIBRARIES})
-endif()
-
-# Debug information
-message(STATUS "ANDROID_ABI: ${ANDROID_ABI}")
-message(STATUS "FBJNI_LIBRARY: ${FBJNI_LIBRARY}")
-if(TORCH)
-  message(STATUS "PYTORCH_LIBRARY: ${PYTORCH_LIBRARY}")
-endif()
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "CMAKE_LIBRARY_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+target_link_libraries(decoder_main PUBLIC libc++_shared.so)
