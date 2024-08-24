@@ -8,14 +8,14 @@ on:
         required: true
         default: https://wenet-1256283475.cos.ap-shanghai.myqcloud.com/models/aishell/20210601_u2%2B%2B_conformer_libtorch.tar.gz
 
-env:
-  ANDROID_DIR: runtime/android
-  RELEASE_DIR: app/build/outputs/apk/release
-  FBJNI_DIR: ${{ env.ANDROID_DIR }}/app/build/fbjni
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_DIR: runtime/android
+      RELEASE_DIR: app/build/outputs/apk/release
+      FBJNI_DIR: runtime/android/app/build/fbjni
+
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
@@ -48,12 +48,6 @@ jobs:
         chmod +x gradlew
         ./gradlew assembleRelease --info
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v3
-      with:
-        name: release-apk
-        path: ${{ env.ANDROID_DIR }}/${{ env.RELEASE_DIR }}/*.apk
-
     - name: Prepare Release Binary
       run: |
         cd ${{ env.ANDROID_DIR }}
@@ -62,6 +56,12 @@ jobs:
           cp app/.cxx/cmake/release/$arch/decoder_main $arch
           cp $(find . -name "pytorch_android-*.aar")/jni/$arch/* $arch
         done
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-apk
+        path: ${{ env.ANDROID_DIR }}/${{ env.RELEASE_DIR }}/*.apk
 
     - name: Upload arm64-v8a Binary
       uses: actions/upload-artifact@v3
