@@ -7,7 +7,7 @@ include(ExternalProject)
 option(TORCH "whether to build with Torch" ON)
 option(ONNX "whether to build with ONNX" OFF)
 option(ITN "whether to use WeTextProcessing" ON)
-set(CMAKE_VERBOSE_MAKEFILE on)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 set(build_DIR ${CMAKE_SOURCE_DIR}/../../../build)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 string(REPLACE "-Wl,--exclude-libs,libgcc_real.a" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
@@ -30,8 +30,6 @@ add_subdirectory(kaldi)  # kaldi: wfst based decoder
 add_subdirectory(decoder)
 add_dependencies(post_processor wetextprocessing)
 
-link_libraries(frontend decoder android)
-
 # 添加共享库目标
 add_library(${TARGET} SHARED wenet.cc)
 
@@ -40,13 +38,13 @@ target_link_libraries(${TARGET} PRIVATE
     frontend
     decoder
     android
-    libc++_shared.so 
+    libc++_shared
     ${TORCH_LIBRARIES}  # 确保链接Torch库
 )
 
 add_executable(decoder_main bin/decoder_main.cc)
 target_link_libraries(decoder_main PUBLIC 
-    libc++_shared.so 
+    libc++_shared
     ${TORCH_LIBRARIES}  # 确保链接Torch库
 )
 
