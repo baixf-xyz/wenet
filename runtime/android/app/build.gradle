@@ -2,12 +2,6 @@ plugins {
     id 'com.android.application'
 }
 
-repositories {
-    google()
-    mavenCentral()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
-}
-
 android {
     signingConfigs {
         release {
@@ -114,7 +108,6 @@ tasks.whenTaskAdded { task ->
     }
 }
 
-// 添加一个任务来打印重要的构建信息
 task printBuildInfo {
     doLast {
         println "Build directory: ${project.buildDir}"
@@ -127,7 +120,6 @@ task printBuildInfo {
     }
 }
 
-// 确保 printBuildInfo 任务在其他任务之前运行
 tasks.whenTaskAdded { task ->
     if (task.name.contains('externalNativeBuild')) {
         task.dependsOn(printBuildInfo)
