@@ -79,7 +79,7 @@ add_library(${TARGET} SHARED wenet.cc)
 add_executable(decoder_main bin/decoder_main.cc)
 target_link_libraries(decoder_main 
   PUBLIC 
-    libc++_shared.so
+    libc++_shared
     ${FBJNI_LIBRARY}
 )
 if(TORCH)
