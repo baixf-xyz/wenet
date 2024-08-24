@@ -32,11 +32,6 @@ jobs:
         tar -xf model.tar.gz
         find . \( -name "final.zip" -o -name "units.txt" \) | xargs -I {} cp {} ${{ env.ANDROID_DIR }}/app/src/main/assets
 
-    - name: Clean Build
-      run: |
-        cd ${{ env.ANDROID_DIR }}
-        ./gradlew clean
-
     - name: Verify FBJNI
       run: |
         tree ${{ env.ANDROID_DIR }} -a
