@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ANDROID_DIR: runtime/android
-      RELEASE_DIR: app/build/outputs/apk/release
-      FBJNI_DIR: runtime/android/app/build/fbjni
+      RELEASE_DIR: ./build/outputs/apk/release
+      FBJNI_DIR: ./runtime/android/app/build/fbjni
 
     steps:
     - name: Checkout Repository
